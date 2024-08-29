@@ -1,0 +1,130 @@
+/* Predict.css */
+.predict-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #172a45;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: #ffffff;
+}
+
+h2 {
+  color: #57c5b6;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #8892b0;
+  font-size: 1rem;
+}
+
+.info-icon {
+  margin-left: 0.5rem;
+  color: #57c5b6;
+  cursor: help;
+  transition: color 0.3s ease;
+}
+
+.info-icon:hover {
+  color: #4fa69a;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #0a192f;
+  color: #ffffff;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #57c5b6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(87, 197, 182, 0.25);
+}
+
+.submit-button {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background-color: #57c5b6;
+  color: #0a192f;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+}
+
+.submit-button:hover {
+  background-color: #4fa69a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(87, 197, 182, 0.1), 0 1px 3px rgba(87, 197, 182, 0.08);
+}
+
+.submit-button:active {
+  transform: translateY(1px);
+}
+
+/* Tooltip styles */
+label[title] {
+  position: relative;
+  cursor: help;
+}
+
+label[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 10;
+  background-color: #57c5b6;
+  color: #0a192f;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+label[title]:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .predict-container {
+    max-width: 90%;
+    padding: 1.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  .submit-button {
+    font-size: 1rem;
+  }
+}

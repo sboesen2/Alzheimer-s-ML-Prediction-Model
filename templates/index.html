@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alzheimer's Risk Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        h1 { color: #333; }
+        .info-box { background-color: #f0f0f0; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .data-input { margin-bottom: 15px; }
+        #genetic-data { width: 100%; height: 100px; }
+        button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Alzheimer's Risk Prediction</h1>
+    <div class="info-box">
+        <h3>About Genetic Data Input</h3>
+        <p>This tool uses specific genetic markers associated with Alzheimer's risk. Please input values for the following genetic markers:</p>
+        <ul>
+            <li>APOE genotype (e.g., 0, 1, or 2 for the number of e4 alleles)</li>
+            <li>TOMM40 '523' poly-T repeat length</li>
+            <li>CLU rs11136000 genotype</li>
+            <li>PICALM rs3851179 genotype</li>
+            <li>CR1 rs6656401 genotype</li>
+        </ul>
+        <p>Enter the values as comma-separated numbers in the order listed above. For example: 1,30,1,2,0</p>
+        <p><strong>Note:</strong> This tool is for educational purposes only and should not be used for medical diagnosis. Always consult with a healthcare professional for medical advice.</p>
+    </div>
+    <form id="prediction-form">
+        <div class="data-input">
+            <label for="genetic-data">Enter Genetic Data:</label><br>
+            <textarea id="genetic-data" placeholder="Enter comma-separated values (e.g., 1,30,1,2,0)" required></textarea>
+        </div>
+        <button type="submit">Predict Risk</button>
+    </form>
+    <div id="root"></div>
+
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const geneticData = document.getElementById('genetic-data').value.split(',').map(Number);
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ genetic_data: geneticData }),
+            });
+            const data = await response.json();
+            document.getElementById('result').innerHTML = `Risk Score: ${data.risk_score.toFixed(4)}`;
+        });
+    </script>
+</body>
+</html>

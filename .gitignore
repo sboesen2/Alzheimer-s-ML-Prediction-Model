@@ -1,0 +1,41 @@
+# Python
+   __pycache__/
+   *.py[cod]
+   *.so
+   .Python
+   env/
+   venv/
+   *.egg-info/
+   .installed.cfg
+   *.egg
+
+    .ipynb_checkpoints
+    */.ipynb_checkpoints/*
+
+   # Data files (adjust as needed)
+   *.csv
+   *.xlsx
+   *.db
+
+   # Model files (adjust as needed)
+   *.joblib
+   *.pkl
+
+   # IDEs
+   .vscode/
+   .idea/
+
+   # OS generated files
+   .DS_Store
+   Thumbs.db
+
+   # Logs
+   *.log
+
+   # Environment variables
+   .env
+
+   # Large files (adjust size as needed)
+   *.{ext} filter=lfs diff=lfs merge=lfs -text
+
+   # Add any other project-specific excludes here
