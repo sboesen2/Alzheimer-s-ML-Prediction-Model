@@ -3746,3 +3746,30 @@
 2024-08-22 12:40:48,758:INFO:SHAP values calculated. Shape: (1, 3407)
 2024-08-22 12:40:48,787:INFO:Prediction successful. Risk: 79.27447509765625%
 2024-08-22 12:40:48,803:INFO:127.0.0.1 - - [22/Aug/2024 12:40:48] "POST /predict HTTP/1.1" 200 -
+2024-08-29 12:50:33,352:INFO:Model loaded successfully
+2024-08-29 12:50:33,461:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-08-29 12:50:33,461:INFO:[33mPress CTRL+C to quit[0m
+2024-08-29 12:50:33,463:INFO: * Restarting with stat
+2024-08-29 12:50:36,357:INFO:Model loaded successfully
+2024-08-29 12:50:36,438:WARNING: * Debugger is active!
+2024-08-29 12:50:36,442:INFO: * Debugger PIN: 786-247-769
+2024-08-29 12:51:24,509:INFO:Feature importance retrieved successfully
+2024-08-29 12:51:24,512:INFO:127.0.0.1 - - [29/Aug/2024 12:51:24] "GET /feature_importance HTTP/1.1" 200 -
+2024-08-29 12:51:24,513:INFO:Sample data retrieved successfully
+2024-08-29 12:51:24,515:INFO:127.0.0.1 - - [29/Aug/2024 12:51:24] "GET /sample_data HTTP/1.1" 200 -
+2024-08-29 12:51:24,764:INFO:Feature importance retrieved successfully
+2024-08-29 12:51:24,766:INFO:127.0.0.1 - - [29/Aug/2024 12:51:24] "GET /feature_importance HTTP/1.1" 200 -
+2024-08-29 12:51:24,824:INFO:Sample data retrieved successfully
+2024-08-29 12:51:24,827:INFO:127.0.0.1 - - [29/Aug/2024 12:51:24] "GET /sample_data HTTP/1.1" 200 -
+2024-08-29 12:51:26,119:INFO:Sample data retrieved successfully
+2024-08-29 12:51:26,121:INFO:127.0.0.1 - - [29/Aug/2024 12:51:26] "GET /sample_data HTTP/1.1" 200 -
+2024-08-29 12:51:27,783:INFO:127.0.0.1 - - [29/Aug/2024 12:51:27] "OPTIONS /predict HTTP/1.1" 200 -
+2024-08-29 12:51:28,047:INFO:Received data: {'orBeta': 1.383, 'pValue': 5.93e-11, 'pValueMlog': 211, 'riskAlleleFrequency': 0.13, 'snpRiskAllele': 'rs429358-C'}
+2024-08-29 12:51:28,083:INFO:Prediction request received. Input data:   STRONGEST SNP-RISK ALLELE       P-VALUE  OR or BETA  RISK ALLELE FREQUENCY  PVALUE_MLOG
+0                rs429358-C  5.930000e-11       1.383                   0.13        211.0
+2024-08-29 12:51:28,128:INFO:Preprocessed data shape: (1, 3407)
+2024-08-29 12:51:28,186:INFO:Raw prediction: 0.05194774642586708
+2024-08-29 12:51:28,207:INFO:SHAP values calculated. Shape: (1, 3407)
+2024-08-29 12:51:28,351:INFO:Prediction successful. Risk: 5.194774627685547%
+2024-08-29 12:51:28,367:INFO:127.0.0.1 - - [29/Aug/2024 12:51:28] "POST /predict HTTP/1.1" 200 -
