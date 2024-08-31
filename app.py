@@ -64,6 +64,10 @@ if model is not None:
 else:
     logger.warning("Model not loaded. Some functionality may be limited.")
 
+@app.route('/')
+def home():
+    return "Alzheimer's Predictor Backend is running!"
+
 @app.route('/feature_importance', methods=['GET'])
 def get_feature_importance():
     if model is None:
