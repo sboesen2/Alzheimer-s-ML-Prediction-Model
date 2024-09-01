@@ -1,3 +1,6 @@
+import os
+import sys
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
@@ -6,14 +9,19 @@ import numpy as np
 import shap
 import json
 from datetime import datetime
-import logging
 import random
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+# Set up logging
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-logging.basicConfig(filename='app.log', level=logging.INFO,
-                    format='%(asctime)s:%(levelname)s:%(message)s')
+logger.info("Starting application...")
+
+app = Flask(__name__)
+CORS(app)
+
+logger.info("Flask app created and CORS initialized")
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -28,31 +36,42 @@ class CustomJSONEncoder(json.JSONEncoder):
 app.json_encoder = CustomJSONEncoder
 
 try:
+    logger.info("Attempting to load model...")
     model = joblib.load('alzheimers_risk_model.joblib')
-    logging.info("Model loaded successfully")
+    logger.info("Model loaded successfully")
 except Exception as e:
-    logging.error(f"Error loading model: {str(e)}")
-    raise
+    logger.error(f"Error loading model: {str(e)}")
+    model = None
 
-categorical_features = ['STRONGEST SNP-RISK ALLELE']
-numeric_features = ['P-VALUE', 'OR or BETA', 'PVALUE_MLOG']
-special_numeric = ['RISK ALLELE FREQUENCY']
+if model is not None:
+    categorical_features = ['STRONGEST SNP-RISK ALLELE']
+    numeric_features = ['P-VALUE', 'OR or BETA', 'PVALUE_MLOG']
+    special_numeric = ['RISK ALLELE FREQUENCY']
 
-feature_importance = model.named_steps['classifier'].feature_importances_
-feature_names = (model.named_steps['preprocessor']
-                 .named_transformers_['cat']
-                 .named_steps['onehot']
-                 .get_feature_names_out(categorical_features).tolist() +
-                 numeric_features +
-                 special_numeric)
+    feature_importance = model.named_steps['classifier'].feature_importances_
+    feature_names = (model.named_steps['preprocessor']
+                     .named_transformers_['cat']
+                     .named_steps['onehot']
+                     .get_feature_names_out(categorical_features).tolist() +
+                     numeric_features +
+                     special_numeric)
 
-importance_df = pd.DataFrame({'feature': feature_names, 'importance': feature_importance})
-importance_df = importance_df.sort_values('importance', ascending=False)
+    importance_df = pd.DataFrame({'feature': feature_names, 'importance': feature_importance})
+    importance_df = importance_df.sort_values('importance', ascending=False)
 
-explainer = shap.TreeExplainer(model.named_steps['classifier'])
+    explainer = shap.TreeExplainer(model.named_steps['classifier'])
+    logger.info("Model preprocessing completed")
+else:
+    logger.warning("Model not loaded. Some functionality may be limited.")
+
+@app.route('/')
+def home():
+    return "Alzheimer's Predictor Backend is running!"
 
 @app.route('/feature_importance', methods=['GET'])
 def get_feature_importance():
+    if model is None:
+        return jsonify({'error': 'Model not loaded'}), 500
     try:
         sorted_importance = importance_df.sort_values('importance', ascending=False)
         top_features = sorted_importance.head(10)
@@ -60,36 +79,41 @@ def get_feature_importance():
             {"feature": row['feature'], "importance": float(row['importance'])}
             for _, row in top_features.iterrows()
         ]
-        logging.info("Feature importance retrieved successfully")
+        logger.info("Feature importance retrieved successfully")
         return jsonify(feature_importance_list)
     except Exception as e:
-        logging.error(f"Error retrieving feature importance: {str(e)}")
+        logger.error(f"Error retrieving feature importance: {str(e)}")
         return jsonify({'error': 'Unable to retrieve feature importance'}), 500
 
 def predict_alzheimers_risk(new_data):
+    if model is None:
+        logger.error("Prediction attempted but model is not loaded")
+        return None, None
     try:
-        logging.info(f"Prediction request received. Input data: {new_data}")
+        logger.info(f"Prediction request received. Input data: {new_data}")
         if len(new_data.shape) == 1:
             new_data = new_data.reshape(1, -1)
         preprocessed_data = model.named_steps['preprocessor'].transform(new_data)
-        logging.info(f"Preprocessed data shape: {preprocessed_data.shape}")
+        logger.info(f"Preprocessed data shape: {preprocessed_data.shape}")
         risk_probability = model.predict_proba(new_data)[0][1]
-        logging.info(f"Raw prediction: {risk_probability}")
+        logger.info(f"Raw prediction: {risk_probability}")
         shap_values = explainer.shap_values(preprocessed_data)
-        logging.info(f"SHAP values calculated. Shape: {np.array(shap_values).shape}")
+        logger.info(f"SHAP values calculated. Shape: {np.array(shap_values).shape}")
         if isinstance(shap_values, list) and len(shap_values) > 1:
             shap_values = shap_values[1]
         return risk_probability, shap_values
     except Exception as e:
-        logging.error(f"Error in prediction function: {str(e)}")
+        logger.error(f"Error in prediction function: {str(e)}")
         return None, None
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    print("Received prediction request")
+    logger.info("Received prediction request")
+    if model is None:
+        return jsonify({'error': 'Model not loaded'}), 500
     try:
         data = request.json
-        logging.info(f"Received data: {data}")
+        logger.info(f"Received data: {data}")
         required_fields = ['snpRiskAllele', 'pValue', 'orBeta', 'riskAlleleFrequency', 'pValueMlog']
         if not all(field in data for field in required_fields):
             return jsonify({'error': 'Missing required fields'}), 400
@@ -121,17 +145,17 @@ def predict():
             'feature_names': feature_names,
             'timestamp': datetime.now().isoformat()
         }
-        logging.info(f"Prediction successful. Risk: {risk_probability * 100}%")
+        logger.info(f"Prediction successful. Risk: {risk_probability * 100}%")
         return app.response_class(
             response=json.dumps(response_data, cls=CustomJSONEncoder),
             status=200,
             mimetype='application/json'
         )
     except ValueError as ve:
-        logging.error(f"Value error in prediction: {str(ve)}")
+        logger.error(f"Value error in prediction: {str(ve)}")
         return jsonify({'error': f'Invalid input data: {str(ve)}'}), 400
     except Exception as e:
-        logging.error(f"Error in prediction route: {str(e)}")
+        logger.error(f"Error in prediction route: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
 @app.route('/sample_data', methods=['GET'])
@@ -144,10 +168,10 @@ def get_sample_data():
             'riskAlleleFrequency': round(random.uniform(0.01, 0.5), 2),
             'pValueMlog': random.randint(100, 300)
         }
-        logging.info("Sample data retrieved successfully")
+        logger.info("Sample data retrieved successfully")
         return jsonify(sample_data)
     except Exception as e:
-        logging.error(f"Error retrieving sample data: {str(e)}")
+        logger.error(f"Error retrieving sample data: {str(e)}")
         return jsonify({'error': 'Unable to retrieve sample data'}), 500
 
 @app.route('/health', methods=['GET'])
@@ -155,4 +179,6 @@ def health_check():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    logger.info(f"Starting Flask app on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
