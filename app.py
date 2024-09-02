@@ -11,6 +11,19 @@ import json
 from datetime import datetime
 import random
 
+# Version Checking Yessir
+import sklearn
+import joblib
+import xgboost
+import pandas
+import numpy
+
+print(f"scikit-learn version: {sklearn.__version__}")
+print(f"joblib version: {joblib.__version__}")
+print(f"xgboost version: {xgboost.__version__}")
+print(f"pandas version: {pandas.__version__}")
+print(f"numpy version: {numpy.__version__}")
+
 # Set up logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -38,9 +51,15 @@ app.json_encoder = CustomJSONEncoder
 try:
     logger.info("Attempting to load model...")
     model = joblib.load('alzheimers_risk_model.joblib')
-    logger.info("Model loaded successfully")
+    logger.info(f"Model loaded successfully. Type: {type(model)}")
+    if hasattr(model, 'steps'):
+        logger.info("Pipeline steps:")
+        for step_name, step_estimator in model.steps:
+            logger.info(f"- {step_name}: {type(step_estimator).__name__}")
 except Exception as e:
     logger.error(f"Error loading model: {str(e)}")
+    logger.error(f"Current working directory: {os.getcwd()}")
+    logger.error(f"Files in current directory: {os.listdir('.')}")
     model = None
 
 if model is not None:
@@ -151,11 +170,14 @@ def predict():
             status=200,
             mimetype='application/json'
         )
-    except ValueError as ve:
+        except ValueError as ve:
         logger.error(f"Value error in prediction: {str(ve)}")
         return jsonify({'error': f'Invalid input data: {str(ve)}'}), 400
+    except KeyError as ke:
+        logger.error(f"Key error in prediction: {str(ke)}")
+        return jsonify({'error': f'Missing required field: {str(ke)}'}), 400
     except Exception as e:
-        logger.error(f"Error in prediction route: {str(e)}")
+        logger.error(f"Unexpected error in prediction: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
 @app.route('/sample_data', methods=['GET'])
