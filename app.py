@@ -10,10 +10,10 @@ import shap
 import json
 from datetime import datetime
 import random
+from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Version Checking Yessir
+# Version Checking
 import sklearn
-import joblib
 import xgboost
 import pandas
 import numpy
@@ -25,7 +25,7 @@ print(f"pandas version: {pandas.__version__}")
 print(f"numpy version: {numpy.__version__}")
 
 # Set up logging
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
+logging.basicConfig(stream=sys.stdout, level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,10 @@ logger.info("Starting application...")
 
 app = Flask(__name__)
 CORS(app)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 logger.info("Flask app created and CORS initialized")
+
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -46,20 +48,24 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj.tolist()
         return super(CustomJSONEncoder, self).default(obj)
 
+
 app.json_encoder = CustomJSONEncoder
 
+# Model loading
+MODEL_PATH = os.environ.get('MODEL_PATH', 'alzheimers_risk_model_heroku.joblib')
 try:
-    logger.info("Attempting to load model...")
-    model = joblib.load('alzheimers_risk_model.joblib')
+    logger.info(f"Attempting to load model from {MODEL_PATH}...")
+    model = joblib.load(MODEL_PATH)
     logger.info(f"Model loaded successfully. Type: {type(model)}")
     if hasattr(model, 'steps'):
         logger.info("Pipeline steps:")
         for step_name, step_estimator in model.steps:
             logger.info(f"- {step_name}: {type(step_estimator).__name__}")
+except FileNotFoundError:
+    logger.error(f"Model file not found at {MODEL_PATH}")
+    model = None
 except Exception as e:
     logger.error(f"Error loading model: {str(e)}")
-    logger.error(f"Current working directory: {os.getcwd()}")
-    logger.error(f"Files in current directory: {os.listdir('.')}")
     model = None
 
 if model is not None:
@@ -83,11 +89,13 @@ if model is not None:
 else:
     logger.warning("Model not loaded. Some functionality may be limited.")
 
+
 @app.route('/')
 def home():
     return "Alzheimer's Predictor Backend is running!"
 
-@app.route('/feature_importance', methods=['GET'])
+
+@app.route('/api/v1/feature_importance', methods=['GET'])
 def get_feature_importance():
     if model is None:
         return jsonify({'error': 'Model not loaded'}), 500
@@ -103,6 +111,7 @@ def get_feature_importance():
     except Exception as e:
         logger.error(f"Error retrieving feature importance: {str(e)}")
         return jsonify({'error': 'Unable to retrieve feature importance'}), 500
+
 
 def predict_alzheimers_risk(new_data):
     if model is None:
@@ -125,7 +134,8 @@ def predict_alzheimers_risk(new_data):
         logger.error(f"Error in prediction function: {str(e)}")
         return None, None
 
-@app.route('/predict', methods=['POST'])
+
+@app.route('/api/v1/predict', methods=['POST'])
 def predict():
     logger.info("Received prediction request")
     if model is None:
@@ -135,7 +145,9 @@ def predict():
         logger.info(f"Received data: {data}")
         required_fields = ['snpRiskAllele', 'pValue', 'orBeta', 'riskAlleleFrequency', 'pValueMlog']
         if not all(field in data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+            missing_fields = [field for field in required_fields if field not in data]
+            return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
+
         input_data = pd.DataFrame({
             'STRONGEST SNP-RISK ALLELE': [data['snpRiskAllele']],
             'P-VALUE': [float(data['pValue'])],
@@ -143,9 +155,11 @@ def predict():
             'RISK ALLELE FREQUENCY': [float(data['riskAlleleFrequency'])],
             'PVALUE_MLOG': [float(data['pValueMlog'])]
         })
+
         risk_probability, shap_values = predict_alzheimers_risk(input_data)
         if risk_probability is None or shap_values is None:
             return jsonify({'error': 'Prediction failed'}), 500
+
         total_shap = np.sum(np.abs(shap_values[0]))
         risk_breakdown = {
             'totalRisk': float(risk_probability),
@@ -170,7 +184,7 @@ def predict():
             status=200,
             mimetype='application/json'
         )
-        except ValueError as ve:
+    except ValueError as ve:
         logger.error(f"Value error in prediction: {str(ve)}")
         return jsonify({'error': f'Invalid input data: {str(ve)}'}), 400
     except KeyError as ke:
@@ -180,7 +194,8 @@ def predict():
         logger.error(f"Unexpected error in prediction: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
-@app.route('/sample_data', methods=['GET'])
+
+@app.route('/api/v1/sample_data', methods=['GET'])
 def get_sample_data():
     try:
         sample_data = {
@@ -196,9 +211,11 @@ def get_sample_data():
         logger.error(f"Error retrieving sample data: {str(e)}")
         return jsonify({'error': 'Unable to retrieve sample data'}), 500
 
+
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()}), 200
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
