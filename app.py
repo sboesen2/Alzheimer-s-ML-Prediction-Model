@@ -52,7 +52,7 @@ class CustomJSONEncoder(json.JSONEncoder):
 app.json_encoder = CustomJSONEncoder
 
 # Model loading
-MODEL_PATH = os.environ.get('MODEL_PATH', 'alzheimers_risk_model_new.joblib')
+MODEL_PATH = os.environ.get('MODEL_PATH', 'alzheimers_risk_model.joblib')
 try:
     logger.info(f"Attempting to load model from {MODEL_PATH}...")
     model = joblib.load(MODEL_PATH)
