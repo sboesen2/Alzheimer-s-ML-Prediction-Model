@@ -7,13 +7,20 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Load your model
-model_path = os.path.join(os.path.dirname(__file__), '..', 'alzheimers_risk_model.joblib')
-model = joblib.load(model_path)
+# Global variable for the model
+model = None
+
+def load_model():
+    global model
+    if model is None:
+        model_path = os.path.join(os.path.dirname(__file__), '..', 'alzheimers_risk_model.joblib')
+        model = joblib.load(model_path)
+    return model
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
     data = request.json
+    model = load_model()
     input_data = np.array([[
         data['snpRiskAllele'],
         float(data['pValue']),
@@ -32,3 +39,6 @@ def health_check():
 def handler(request):
     with app.request_context(request):
         return app.full_dispatch_request()
+
+# Load the model when the file is imported
+load_model()
