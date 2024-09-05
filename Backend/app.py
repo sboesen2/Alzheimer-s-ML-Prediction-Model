@@ -10,7 +10,9 @@ import shap
 import json
 from datetime import datetime
 import random
-from google.cloud import storage  # Import Google Cloud Storage library
+from google.cloud import storage
+import base64
+from google.oauth2 import service_account
 
 # Set up logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
@@ -19,18 +21,29 @@ logger = logging.getLogger(__name__)
 
 logger.info("Starting application...")
 
+# Load and decode credentials from environment variable
+credentials_base64 = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_BASE64')
+if credentials_base64:
+    credentials_json = base64.b64decode(credentials_base64).decode('utf-8')
+    credentials_dict = json.loads(credentials_json)
+    credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+else:
+    # Fallback to file-based credentials for local development
+    credentials = service_account.Credentials.from_service_account_file(
+        os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', '../alzheimer-model-8079e6d0ea47.json')
+    )
+
+# Create storage client
+storage_client = storage.Client(credentials=credentials)
+
 app = Flask(__name__)
 CORS(app)
 
 logger.info("Flask app created and CORS initialized")
 
-# Set Google Cloud credentials for authentication
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "Backend/config/your-google-cloud-key.json"  # Update with the actual path
-
 def download_xgboost_dll(bucket_name, source_blob_name, destination_file_name):
     """Downloads xgboost.dll from Google Cloud Storage bucket."""
     try:
-        storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(source_blob_name)
         blob.download_to_filename(destination_file_name)
@@ -41,7 +54,7 @@ def download_xgboost_dll(bucket_name, source_blob_name, destination_file_name):
 # Before loading the model, download the xgboost.dll
 bucket_name = "alzheimers-backend-xgboost"  # Replace with your bucket name
 source_blob_name = "xgboost.dll"
-destination_file_name = "xgboost/lib/xgboost.dll"  # Path to store the DLL locally
+destination_file_name = "../xgboost/lib/xgboost.dll"  # Path to store the DLL locally
 
 download_xgboost_dll(bucket_name, source_blob_name, destination_file_name)
 
@@ -60,7 +73,7 @@ app.json_encoder = CustomJSONEncoder
 # Load the model
 try:
     logger.info("Attempting to load model...")
-    model = joblib.load('alzheimers_risk_model.joblib')
+    model = joblib.load('../alzheimers_risk_model.joblib')
     logger.info("Model loaded successfully")
 except Exception as e:
     logger.error(f"Error loading model: {str(e)}")
@@ -200,6 +213,15 @@ def get_sample_data():
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()}), 200
+
+@app.route('/test_gcs')
+def test_gcs():
+    try:
+        bucket = storage_client.get_bucket('alzheimers-backend-xgboost')
+        blobs = list(bucket.list_blobs())
+        return jsonify([blob.name for blob in blobs])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
