@@ -5,6 +5,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -44,4 +45,53 @@ Thumbs.db
 # Backup files
 *.bak
 
+# Config
+config/
+
+# Google Cloud credentials
+alzheimer-model-8079e6d0ea47.json
+
+# Python package directories
+*.dist-info/
+bin/
+lib/
+include/
+
+# Specific libraries
+numpy.libs/
+scipy.libs/
+
+# Wheel files
+*.whl
+
+# Dependency directories
+flask/
+flask_cors/
+jinja2/
+markupsafe/
+werkzeug/
+click/
+blinker/
+itsdangerous/
+colorama/
+joblib/
+numba/
+numpy/
+pandas/
+scikit_learn/
+scipy/
+shap/
+xgboost/
+cloudpickle/
+llvmlite/
+gunicorn/
+pytz/
+slicer/
+tqdm/
+tzdata/
+dateutil/
+packaging/
+six.py
+sklearn/
+threadpoolctl.py
 # Add any other project-specific excludes here

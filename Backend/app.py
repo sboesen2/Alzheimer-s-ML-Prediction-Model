@@ -10,6 +10,7 @@ import shap
 import json
 from datetime import datetime
 import random
+from google.cloud import storage  # Import Google Cloud Storage library
 
 # Set up logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
@@ -23,6 +24,27 @@ CORS(app)
 
 logger.info("Flask app created and CORS initialized")
 
+# Set Google Cloud credentials for authentication
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "Backend/config/your-google-cloud-key.json"  # Update with the actual path
+
+def download_xgboost_dll(bucket_name, source_blob_name, destination_file_name):
+    """Downloads xgboost.dll from Google Cloud Storage bucket."""
+    try:
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(source_blob_name)
+        blob.download_to_filename(destination_file_name)
+        logger.info(f"Downloaded {source_blob_name} to {destination_file_name}")
+    except Exception as e:
+        logger.error(f"Error downloading xgboost.dll: {str(e)}")
+
+# Before loading the model, download the xgboost.dll
+bucket_name = "alzheimers-backend-xgboost"  # Replace with your bucket name
+source_blob_name = "xgboost.dll"
+destination_file_name = "xgboost/lib/xgboost.dll"  # Path to store the DLL locally
+
+download_xgboost_dll(bucket_name, source_blob_name, destination_file_name)
+
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -35,6 +57,7 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 app.json_encoder = CustomJSONEncoder
 
+# Load the model
 try:
     logger.info("Attempting to load model...")
     model = joblib.load('alzheimers_risk_model.joblib')

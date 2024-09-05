@@ -3,6 +3,8 @@ from flask_cors import CORS
 import joblib
 import numpy as np
 import os
+from google.cloud import storage
+import tempfile
 
 app = Flask(__name__)
 CORS(app)
@@ -10,11 +12,22 @@ CORS(app)
 # Global variable for the model
 model = None
 
+def download_blob(bucket_name, source_blob_name, destination_file_name):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+    blob.download_to_filename(destination_file_name)
+
 def load_model():
     global model
     if model is None:
-        model_path = os.path.join(os.path.dirname(__file__), '..', 'alzheimers_risk_model.joblib')
-        model = joblib.load(model_path)
+        # Download the model file from Google Cloud Storage
+        bucket_name = "alzheimers-backend-xgboost"
+        source_blob_name = "alzheimers_risk_model.joblib"
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            download_blob(bucket_name, source_blob_name, temp_file.name)
+            model = joblib.load(temp_file.name)
+        os.unlink(temp_file.name)  # Delete the temporary file
     return model
 
 @app.route('/api/predict', methods=['POST'])
