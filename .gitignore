@@ -95,3 +95,19 @@ six.py
 sklearn/
 threadpoolctl.py
 # Add any other project-specific excludes here
+
+# Virtual Environment
+venv/
+env/
+.venv/
+heroku_env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Large binary files
+*.dll
+
+# Rest of your existing .gitignore content
