@@ -3773,3 +3773,4 @@
 2024-08-29 12:51:28,207:INFO:SHAP values calculated. Shape: (1, 3407)
 2024-08-29 12:51:28,351:INFO:Prediction successful. Risk: 5.194774627685547%
 2024-08-29 12:51:28,367:INFO:127.0.0.1 - - [29/Aug/2024 12:51:28] "POST /predict HTTP/1.1" 200 -
+2024-09-09 14:21:14,998:ERROR:Error loading model: [Errno 2] No such file or directory: 'alzheimers_risk_model.joblib'

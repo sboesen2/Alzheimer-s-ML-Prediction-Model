@@ -3,4 +3,6 @@
 alzheimer-model-8079e6d0ea47.json
 *.joblib
 
+*.json
+Backend/alzheimers-prediction-backend-b77c386fb552.json
 

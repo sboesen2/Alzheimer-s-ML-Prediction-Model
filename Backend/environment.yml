@@ -1,0 +1,15 @@
+name: myenv
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - pandas=1.3.3
+  - numpy=1.19.5
+  - scikit-learn=0.24.2
+  - xgboost=1.4.2
+  - joblib=1.0.1
+  - scipy=1.5.4
+  - pip
+  - pip:
+    - Flask==2.0.1
+    - Flask-Cors==3.0.10
