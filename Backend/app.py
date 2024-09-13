@@ -36,7 +36,7 @@ logger.info("Starting application...")
 # Initialize Flask app and CORS
 app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder  # Set custom JSON encoder for the app
-CORS(app)
+CORS(app, origins=["https://alzheimerspredictionfrontend-sam-boesens-projects.vercel.app"])
 
 logger.info("Flask app created and CORS initialized")
 

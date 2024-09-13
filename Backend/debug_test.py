@@ -1,7 +1,7 @@
 import requests
 import json
 
-url = 'http://localhost:5000/predict'
+url = 'http://https://alzheimers-backend-925506798704.us-central1.run.app0/predict'
 data = {
     'snpRiskAllele': 'rs429358-C',
     'pValue': '1e-200',
