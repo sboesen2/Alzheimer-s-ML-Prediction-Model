@@ -46,7 +46,7 @@ function Predict() {
 
   const fetchSampleData = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/sample_data');
+      const response = await axios.get('https://alzheimers-backend-925506798704.us-central1.run.app/predict');
       setResearcherInputs(response.data);
       setSnackbarMessage('Sample data loaded successfully');
       setSnackbarOpen(true);
@@ -66,7 +66,7 @@ function Predict() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('http://localhost:5000/predict', researcherInputs);
+      const response = await axios.post('https://alzheimers-backend-925506798704.us-central1.run.app/predict', researcherInputs);
       setPrediction(response.data.risk);
       setShapValues(response.data.shap_values);
       setFeatureNames(response.data.feature_names);
