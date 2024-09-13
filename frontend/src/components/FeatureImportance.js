@@ -11,7 +11,7 @@ const FeatureImportance = () => {
   useEffect(() => {
     const fetchFeatureImportance = async () => {
       try {
-        const response = await axios.get('http://https://alzheimers-backend-925506798704.us-central1.run.app0/feature_importance');
+        const response = await axios.get('https://alzheimers-backend-925506798704.us-central1.run.app/feature_importance');
         setFeatureImportance(response.data.sort((a, b) => b.importance - a.importance));
       } catch (error) {
         console.error('Error fetching feature importance:', error);
