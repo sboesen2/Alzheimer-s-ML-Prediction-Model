@@ -62,24 +62,32 @@ function Predict() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.post('https://alzheimers-backend-925506798704.us-central1.run.app/predict', researcherInputs);
-      setPrediction(response.data.risk);
-      setShapValues(response.data.shap_values);
-      setFeatureNames(response.data.feature_names);
-      setRiskBreakdown(response.data.riskBreakdown);
-      setSnackbarMessage('Prediction completed successfully');
-      setSnackbarOpen(true);
-    } catch (err) {
-      setError(`An error occurred: ${err.response ? err.response.data.error : err.message}`);
-      setSnackbarMessage('Error occurred during prediction');
-      setSnackbarOpen(true);
-    }
-    setLoading(false);
-  };
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await axios.post(
+      'https://alzheimers-backend-925506798704.us-central1.run.app/predict',
+      researcherInputs,
+      {
+        headers: {
+          'Content-Type': 'application/json'  // Ensure this header is included
+        }
+      }
+    );
+    setPrediction(response.data.risk);
+    setShapValues(response.data.shap_values);
+    setFeatureNames(response.data.feature_names);
+    setRiskBreakdown(response.data.riskBreakdown);
+    setSnackbarMessage('Prediction completed successfully');
+    setSnackbarOpen(true);
+  } catch (err) {
+    setError(`An error occurred: ${err.response ? err.response.data.error : err.message}`);
+    setSnackbarMessage('Error occurred during prediction');
+    setSnackbarOpen(true);
+  }
+  setLoading(false);
+};
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
