@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin  # Import cross_origin
 import pandas as pd
 import xgboost as xgb
 import numpy as np
@@ -36,7 +36,7 @@ logger.info("Starting application...")
 # Initialize Flask app and CORS
 app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder  # Set custom JSON encoder for the app
-CORS(app, origins=["https://alzheimerspredictionfrontend-sam-boesens-projects.vercel.app"])
+CORS(app, resources={r"/predict": {"origins": "*"}})  # Enable CORS on /predict route
 
 logger.info("Flask app created and CORS initialized")
 
@@ -104,7 +104,9 @@ def predict_alzheimers_risk(input_data):
         return None
 
 
-@app.route('/predict', methods=['POST'])
+# Adding 'OPTIONS' method and CORS
+@app.route('/predict', methods=['POST', 'OPTIONS'])
+@cross_origin()  # Add this decorator to ensure CORS headers for POST and OPTIONS requests
 def predict():
     if pipeline is None:
         return jsonify({'error': 'Model not loaded'}), 500
