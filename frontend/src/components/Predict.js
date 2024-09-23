@@ -67,7 +67,7 @@ function Predict() {
   setError(null);
   try {
     const response = await axios.post(
-      'https://alzheimers-backend-925506798704.us-central1.run.app/predict',
+      '/predict',
       researcherInputs,
       {
         headers: {
